@@ -1,0 +1,26 @@
+{
+  "name": "purescript-p5-template",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:SolarLiner/purescript-p5-template.git",
+  "author": "Nathan Graule <solarliner@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "build": "cross-env NODE_ENV=production webpack",
+    "dev": "webpack-dev-server"
+  },
+  "dependencies": {
+    "html-webpack-plugin": "^4.3.0",
+    "p5": "^1.1.9",
+    "purs-loader": "^3.7.1",
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12",
+    "webpack-dev-server": "^3.11.0",
+    "webpack-module-nomodule-plugin": "^0.4.0"
+  },
+  "devDependencies": {
+    "@types/webpack": "^4.41.21",
+    "cross-env": "^7.0.2",
+    "terser-webpack-plugin": "^4.1.0"
+  }
+}
