@@ -121,11 +121,10 @@ let additions =
 let upstream =
       https://github.com/purescript/package-sets/releases/download/psc-0.13.8-20200724/packages.dhall sha256:bb941d30820a49345a0e88937094d2b9983d939c9fd3a46969b85ce44953d7d9
 
-let overrides = {=}
+let overrides = { p5 =
+          https://raw.githubusercontent.com/SolarLiner/purescript-p5/0a8373ff77d2e6b5310a8a94661d70c1898ff53a/spago.dhall sha256:b82971488a5c466e26e48c1bc670f5148b38a471ef70a2bd69b2674de6034c50
+      }
 
-let additions = {
-    -- p5 = https://raw.githubusercontent.com/SolarLiner/purescript-p5/master/spago.dhall
-    p5 = ../purescript-p5/spago.dhall as Location
-}
+let additions = {=}
 
 in  upstream // overrides // additions

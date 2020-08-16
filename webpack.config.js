@@ -1,40 +1,29 @@
 //@ts-check
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-const ModuleNomodulePlugin = require("webpack-module-nomodule-plugin");
 const webpack = require("webpack");
-const TerserPlugin = require("terser-webpack-plugin");
+const ClosurePlugin = require("closure-webpack-plugin");
+const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 
-const modernTerser = new TerserPlugin({
-  cache: true,
-  parallel: true,
-  sourceMap: true,
-  terserOptions: {
-    ecma: 8,
-    safari10: true,
-  },
-});
 /**
  * @returns {webpack.Configuration}
- * @param {'modern' | 'legacy'} mode
  */
-function makeConfig(mode) {
+function makeConfig() {
   const { NODE_ENV } = process.env;
   const isProduction = NODE_ENV === "production";
   const isWatch =
     process.argv.some((a) => a.includes("--watch")) ||
     process.argv[0].includes("webpack-dev-server");
-  const plugins = [];
+  const plugins = [new webpack.ProgressPlugin()];
   const baseDir = path.resolve(__dirname, "./");
   const distDir = path.resolve(__dirname, "./dist");
 
-  if (isProduction) plugins.push(new ModuleNomodulePlugin(mode));
-  else plugins.push(new webpack.HotModuleReplacementPlugin());
+  if (!isProduction) plugins.push(new webpack.HotModuleReplacementPlugin());
 
   return {
     mode: isProduction ? "production" : "development",
     devtool: "source-map",
-    entry: { main: "./index.js" },
+    entry: { main: "./src/Main.purs" },
     context: baseDir,
     devServer: {
       contentBase: distDir,
@@ -49,17 +38,23 @@ function makeConfig(mode) {
     },
     stats: "normal",
     output: {
-      chunkFilename: isProduction
-        ? `[name]-[contenthash].${mode}.js'`
-        : `[name].${mode}.js`,
+      filename: isProduction ? `[name].[hash:5].js` : `[name].js`,
+      chunkFilename: isProduction ? `[name].chunk.[hash:5].js'` : `[name].js`,
       path: distDir,
       publicPath: "/",
     },
     optimization: {
       splitChunks: { chunks: "initial" },
-      minimizer: mode === "legacy" ? undefined : [modernTerser],
+      concatenateModules: false,
+      minimizer: [
+        new ClosurePlugin(
+          { mode: "AGGRESSIVE_BUNDLE" },
+          { languageOut: "ECMASCRIPT5" }
+        ),
+      ],
     },
     plugins: [
+      new CleanWebpackPlugin(),
       new HtmlWebpackPlugin({ inject: true, title: "PureScript + p5.js = 💖" }),
       ...plugins.filter(Boolean),
     ],
@@ -67,18 +62,24 @@ function makeConfig(mode) {
       rules: [
         {
           test: /\.purs$/,
-          loader: "purs-loader",
-          options: {
-            spago: true,
-            watch: isWatch,
-          },
+          loaders: [
+            {
+              loader: "purs-loader",
+              options: {
+                spago: true,
+                bundle: true,
+                watch: isWatch,
+                pscBundleArgs: {
+                  module: "Main",
+                  main: "Main",
+                },
+              },
+            },
+          ],
         },
       ],
     },
   };
 }
 
-module.exports =
-  process.env.NODE_ENV === "production"
-    ? [makeConfig("modern"), makeConfig("legacy")]
-    : makeConfig("modern");
+module.exports = makeConfig();
